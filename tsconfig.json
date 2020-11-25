@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
