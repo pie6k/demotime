@@ -1,80 +1,62 @@
 import { Model, createStore, prop, oneToMany, manyToOne } from '../lib';
 import { Collection } from '../lib/collection';
-import { generateTestId } from './utils';
+import { createTestStore } from './testStore';
+import { generateTestId, mockDate } from './utils';
 
 describe('hello', () => {
-  class Person extends Model {
-    @prop()
-    name?: string;
-    @oneToMany(() => Dog, 'owner')
-    dogs!: Collection<Dog>;
-  }
+  const store = createTestStore();
 
-  class Dog extends Model {
-    @prop()
-    name?: string;
-    @manyToOne(() => Person, 'dogs')
-    owner!: Person;
-  }
-
-  it('world', () => {
-    const store = createStore(
-      { person: Person, dog: Dog },
-      {
-        id: {
-          create() {
-            return generateTestId();
-          },
-          validate: () => true,
-        },
-      },
-    );
+  it('updates updatedAt on updates', () => {
+    const dateMock = mockDate();
 
     const bob = store.addPerson({ name: 'Bob' });
-    const dog = store.addDog({ name: 'Saba', ownerId: bob.id });
 
-    expect(dog.owner.name).toEqual('Bob');
-    expect(bob.dogs.size).toBe(1);
-    expect(bob.dogs.items[0].name).toEqual('Saba');
+    const start = new Date();
 
-    store.removeDog(dog.id);
+    expect(bob.createdAt).toEqual(start);
+    expect(bob.updatedAt).toEqual(start);
 
-    expect(bob.dogs.size).toBe(0);
+    dateMock.forward(1000);
+
+    bob.name = 'Tom';
+
+    expect(bob.updatedAt).not.toEqual(start);
+    expect(bob.updatedAt.getTime()).toEqual(start.getTime() + 1000);
   });
 
-  it.skip('works2', () => {
-    const store = createStore(
-      { person: Person, dog: Dog },
-      {
-        id: {
-          create() {
-            return generateTestId();
-          },
-          validate: () => true,
-        },
-      },
-    );
+  // it.skip('works2', () => {
+  //   const store = createStore(
+  //     { person: Person, dog: Dog },
+  //     {
+  //       id: {
+  //         create() {
+  //           return generateTestId();
+  //         },
+  //         validate: () => true,
+  //       },
+  //     },
+  //   );
 
-    const bob = store.addPerson({ name: 'Bob' });
-    const dog = store.addDog({ name: 'Saba', ownerId: bob.id });
-    const dog2 = store.addDog({ name: 'Saba', ownerId: bob.id });
+  //   const bob = store.addPerson({ name: 'Bob' });
+  //   const dog = store.addDog({ name: 'Saba', ownerId: bob.id });
+  //   const dog2 = store.addDog({ name: 'Saba', ownerId: bob.id });
 
-    const dogs = store.createDogQuery(dog => {
-      return dog.name === 'Saba';
-    });
+  //   const dogs = store.createDogQuery(dog => {
+  //     return dog.name === 'Saba';
+  //   });
 
-    expect(dogs.results).toHaveLength(2);
+  //   expect(dogs.results).toHaveLength(2);
 
-    store.removeDog(dog);
+  //   store.removeDog(dog);
 
-    expect(dogs.results).toHaveLength(1);
+  //   expect(dogs.results).toHaveLength(1);
 
-    const dog3 = store.addDog({ name: 'Saba', ownerId: bob.id });
+  //   const dog3 = store.addDog({ name: 'Saba', ownerId: bob.id });
 
-    expect(dogs.results).toHaveLength(2);
+  //   expect(dogs.results).toHaveLength(2);
 
-    dog3.name = 'Lol';
+  //   dog3.name = 'Lol';
 
-    expect(dogs.results).toHaveLength(1);
-  });
+  //   expect(dogs.results).toHaveLength(1);
+  // });
 });

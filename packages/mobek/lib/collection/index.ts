@@ -6,6 +6,7 @@ import {
   observable,
 } from 'mobx';
 import { Model } from '../model';
+import { createChannel } from '../utils/channel';
 
 interface CollectionConfig<I extends Model> {
   orderBy?: (item: I) => number;
@@ -13,8 +14,21 @@ interface CollectionConfig<I extends Model> {
 
 export class Collection<I extends Model> {
   private config?: CollectionConfig<I>;
-  constructor(config?: CollectionConfig<I>) {
+
+  onItemAdded = createChannel<I>();
+  onItemRemoved = createChannel<I>();
+  onItemsChange = createChannel<I[]>();
+
+  constructor(config?: CollectionConfig<I>, initialItems?: I[]) {
     this.config = config;
+
+    if (initialItems) {
+      for (const initialItem of initialItems) {
+        this.rawList.push(initialItem);
+        this.idLookupMap.set(initialItem.id, initialItem);
+      }
+    }
+
     makeObservable(this);
   }
 
@@ -32,6 +46,10 @@ export class Collection<I extends Model> {
 
     this.rawList.push(item);
     this.idLookupMap.set(item.id, item);
+
+    this.onItemAdded.publish(item);
+
+    this.onItemsChange.publish(this.items);
   }
 
   @action
@@ -42,6 +60,9 @@ export class Collection<I extends Model> {
 
     this.rawList.remove(item);
     this.idLookupMap.delete(item.id);
+
+    this.onItemRemoved.publish(item);
+    this.onItemsChange.publish(this.items);
   }
 
   @action
@@ -52,6 +73,7 @@ export class Collection<I extends Model> {
 
   @action
   public replaceAll(items: I[]) {
+    // TODO Publish to channels
     this.rawList.replace(items);
     this.idLookupMap.clear();
 
@@ -63,6 +85,11 @@ export class Collection<I extends Model> {
   @computed
   get size() {
     return this.rawList.length;
+  }
+
+  @computed
+  get itemIds() {
+    return this.rawList.map(item => item.id);
   }
 
   @computed

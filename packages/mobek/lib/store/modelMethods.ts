@@ -2,6 +2,7 @@ import { GenericInput, Model } from '../Model';
 import { Primitive, SubType } from '../utils/types';
 import { ItemsStore } from './itemsStore';
 import { ModelsMap } from './modelsMap';
+import { createModelQuery, ModelQuery, QueryFilter } from './query';
 
 type SingleReferenceIdsInput<M extends Model> = {
   [K in keyof SubType<M, Model> as `${Uncapitalize<string & K>}Id`]: string;
@@ -24,29 +25,32 @@ type ModelCreateInput<M extends Model> = SubType<OmitBuiltIns<M>, Primitive> &
   SingleReferenceIdsInput<M> &
   ListReferenceIdsInput<M> & { id?: string };
 
-type ModelsAddMethods<MM extends ModelsMap> = {
-  [K in keyof MM as `add${Capitalize<string & K>}`]: (
-    input: ModelCreateInput<InstanceType<MM[K]>>,
-  ) => InstanceType<MM[K]>;
+type ModelsAddMethods<M extends ModelsMap> = {
+  [K in keyof M as `add${Capitalize<string & K>}`]: (
+    input: ModelCreateInput<InstanceType<M[K]>>,
+  ) => InstanceType<M[K]>;
 };
 
-type ModelsRemoveMethods<SM extends ModelsMap> = {
-  [K in keyof SM as `remove${Capitalize<string & K>}`]: any;
+type ModelsRemoveMethods<M extends ModelsMap> = {
+  [K in keyof M as `remove${Capitalize<string & K>}`]: (id: string) => void;
 };
 
-type ModelQuery<M extends Model> = {
-  results: M[];
+type ModelsGetMethods<M extends ModelsMap> = {
+  [K in keyof M as `get${Capitalize<string & K>}`]: (
+    id: string,
+  ) => InstanceType<M[K]> | null;
 };
 
 type ModelsQueryMethods<SM extends ModelsMap> = {
   [K in keyof SM as `create${Capitalize<string & K>}Query`]: (
-    filter: (item: InstanceType<SM[K]>) => boolean,
+    filter: QueryFilter<InstanceType<SM[K]>>,
   ) => ModelQuery<InstanceType<SM[K]>>;
 };
 
 export type ModelsMethods<SM extends ModelsMap> = ModelsAddMethods<SM> &
   ModelsRemoveMethods<SM> &
-  ModelsQueryMethods<SM>;
+  ModelsQueryMethods<SM> &
+  ModelsGetMethods<SM>;
 
 export function createModelsMethods<SM extends ModelsMap>(
   storesMap: SM,
@@ -61,11 +65,20 @@ export function createModelsMethods<SM extends ModelsMap>(
   for (const modelName in storesMap) {
     const model = storesMap[modelName];
     const addItemMethodName = joinWithCamelCase('add', modelName);
+    const getItemMethodName = joinWithCamelCase('get', modelName);
     const removeItemMethodName = joinWithCamelCase('remove', modelName);
-    const createQueryMethodName = joinWithCamelCase('foo', modelName);
+    const createQueryMethodName = joinWithCamelCase(
+      'create',
+      modelName,
+      'Query',
+    );
 
     Reflect.set(methods, addItemMethodName, (input: GenericInput) => {
       return itemsStore.createItem(model, input);
+    });
+
+    Reflect.set(methods, getItemMethodName, (itemId: string) => {
+      return itemsStore.getItemById(model, itemId);
     });
 
     Reflect.set(methods, removeItemMethodName, (itemId: string) => {
@@ -75,10 +88,8 @@ export function createModelsMethods<SM extends ModelsMap>(
     Reflect.set(
       methods,
       createQueryMethodName,
-      (filter: (model: Model) => boolean) => {
-        return {
-          results: [],
-        };
+      (filter: QueryFilter<Model>): ModelQuery<Model> => {
+        return createModelQuery(itemsStore, modelName, filter);
       },
     );
   }

@@ -24,6 +24,7 @@ export function prop(config?: PropDecoratorOptions) {
       name: key,
       model: modelClass,
       config: { isRequired: config?.isRequired ?? false },
+      isSerialized: true,
     });
   };
 }
@@ -36,7 +37,7 @@ type CollectionModelKeys<T extends typeof Model> = keyof SubType<
 
 type ReferenceModelKeys<T extends typeof Model> = keyof SubType<
   InstanceType<T>,
-  Model
+  Model | undefined
 > &
   string;
 
@@ -47,25 +48,29 @@ export function oneToMany<T extends typeof Model>(
 ) {
   return function propDecorator<T extends Model, K extends string>(
     targetProto: T,
-    propName: K,
+    propertyName: K,
   ) {
     const modelClass = getModelClassFromDecoratorPrototype(targetProto);
 
-    registerProperty(modelClass, propName, {
-      type: 'oneToMany',
-      name: propName,
+    registerProperty(modelClass, propertyName, {
+      type: 'referenceCollection',
+      name: propertyName,
       model: modelClass,
       config: { isRequired: config?.isRequired ?? false },
+      referencedModelProperty: referencedProperty,
       referencedModelGetter: modelGetter,
-      referencedProperty: referencedProperty,
+      isSerialized: false,
+    });
+
+    registerProperty(modelClass, propertyName + 'Ids', {
+      type: 'referenceId',
+      name: propertyName + 'Ids',
+      model: modelClass,
+      config: { isRequired: config?.isRequired ?? false },
+      isList: true,
+      isSerialized: false,
     });
   };
-}
-
-function foo<T extends typeof Model>(
-  a: T,
-): keyof SubType<InstanceType<T>, string | undefined> {
-  return null as any;
 }
 
 export function manyToOne<T extends typeof Model>(
@@ -75,17 +80,27 @@ export function manyToOne<T extends typeof Model>(
 ) {
   return function propDecorator<T extends Model, K extends string>(
     targetProto: T,
-    key: K,
+    propertyName: K,
   ) {
     const modelClass = getModelClassFromDecoratorPrototype(targetProto);
 
-    registerProperty(modelClass, key, {
-      type: 'manyToOne',
-      name: key,
+    registerProperty(modelClass, propertyName, {
+      type: 'reference',
+      name: propertyName,
       model: modelClass,
       config: { isRequired: config?.isRequired ?? false },
       referencedModelGetter: modelGetter,
-      referencedProperty,
+      referencedModelProperty: referencedProperty,
+      isSerialized: false,
+    });
+
+    registerProperty(modelClass, propertyName + 'Id', {
+      type: 'referenceId',
+      name: propertyName + 'Id',
+      model: modelClass,
+      config: { isRequired: config?.isRequired ?? false },
+      isList: false,
+      isSerialized: true,
     });
   };
 }
@@ -96,16 +111,26 @@ export function reference<T extends typeof Model>(
 ) {
   return function propDecorator<T extends Model, K extends string>(
     targetProto: T,
-    key: K,
+    propertyName: K,
   ) {
     const modelClass = getModelClassFromDecoratorPrototype(targetProto);
 
-    registerProperty(modelClass, key, {
+    registerProperty(modelClass, propertyName, {
       type: 'reference',
-      name: key,
+      name: propertyName,
       model: modelClass,
       config: { isRequired: config?.isRequired ?? false },
       referencedModelGetter: modelGetter,
+      isSerialized: false,
+    });
+
+    registerProperty(modelClass, propertyName + 'Id', {
+      type: 'referenceId',
+      name: propertyName + 'Id',
+      model: modelClass,
+      config: { isRequired: config?.isRequired ?? false },
+      isList: false,
+      isSerialized: true,
     });
   };
 }

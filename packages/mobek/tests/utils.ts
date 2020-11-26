@@ -1,3 +1,5 @@
+import { advanceBy, advanceTo, clear } from 'jest-date-mock';
+
 const DEFAULT_ALPHABET =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -29,3 +31,22 @@ afterEach(() => {
 export function generateTestId() {
   return `${++idCount}`;
 }
+
+const TESTS_DATE = new Date(2020, 0, 0);
+
+export function mockDate(initialDate = TESTS_DATE) {
+  advanceTo(initialDate);
+  function forward(ms: number) {
+    advanceBy(ms);
+  }
+
+  function restore() {
+    clear();
+  }
+
+  return { forward, restore };
+}
+
+afterEach(() => {
+  clear();
+});

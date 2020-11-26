@@ -1,7 +1,15 @@
-import { IObservableArray, observable, isObservableArray, action } from 'mobx';
+import {
+  IObservableArray,
+  observable,
+  isObservableArray,
+  action,
+  autorun,
+  makeObservable,
+} from 'mobx';
 import { GenericInput, Model } from '../Model';
 import { getModelClassByInstance, isModelInstance } from '../model/helpers';
 import { removeModelFromAllRelations } from '../properties/updateRelation';
+import { createChannel } from '../utils/channel';
 
 import { StoreConfig } from './config';
 import { ModelsMap } from './modelsMap';
@@ -9,9 +17,15 @@ import { ModelsMap } from './modelsMap';
 export class ItemsStore {
   public storeConfig: StoreConfig;
   public modelsMap: ModelsMap;
+
+  public onItemAdded = createChannel<Model>();
+  public onItemRemoved = createChannel<Model>();
+
   constructor(modelsMap: ModelsMap, storeConfig: StoreConfig) {
     this.storeConfig = storeConfig;
     this.modelsMap = modelsMap;
+
+    makeObservable(this);
   }
 
   validateId(id: string): boolean {
@@ -24,7 +38,6 @@ export class ItemsStore {
 
   getModelNameByModelClass(modelClass: typeof Model): string | null {
     for (const modelName in this.modelsMap) {
-      // console.log('mc', modelClass, this.modelsMap[modelName]);
       if (this.modelsMap[modelName] === modelClass) {
         return modelName;
       }
@@ -67,17 +80,9 @@ export class ItemsStore {
     this.items.add(modelInstance);
     this.itemsLookup.set(modelInstance.id, modelInstance);
 
+    this.onItemAdded.publish(modelInstance);
+
     return modelInstance;
-  }
-
-  @action
-  addItem(item: Model) {
-    if (this.itemsLookup.has(item.id)) {
-      throw new Error('This item already exists');
-    }
-
-    this.itemsLookup.set(item.id, item);
-    this.items.add(item);
   }
 
   @action
@@ -88,6 +93,8 @@ export class ItemsStore {
     }
 
     removeModelFromAllRelations(item);
+
+    this.onItemRemoved.publish(item);
 
     this.itemsLookup.delete(item.id);
     this.items.delete(item);

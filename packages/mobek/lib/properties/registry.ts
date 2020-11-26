@@ -4,38 +4,46 @@ export interface PropertyConfig {
   isRequired: boolean;
 }
 
+type PropertyType =
+  | 'prop'
+  | 'reference'
+  | 'referenceCollection'
+  | 'referenceId';
+
 export interface CommonPropertyData {
+  type: PropertyType;
   name: string;
   model: typeof Model;
   config: PropertyConfig;
+  isSerialized: boolean;
 }
 
 export interface BasicPropertyData extends CommonPropertyData {
   type: 'prop';
 }
 
-export interface OneToManyPropertyData extends CommonPropertyData {
-  type: 'oneToMany';
-  referencedModelGetter: () => typeof Model;
-  referencedProperty: string;
-}
-
-export interface ManyToOnePropertyData extends CommonPropertyData {
-  type: 'manyToOne';
-  referencedModelGetter: () => typeof Model;
-  referencedProperty: string;
+export interface ReferenceIdPropertyData extends CommonPropertyData {
+  type: 'referenceId';
+  isList: boolean;
 }
 
 export interface ReferencePropertyData extends CommonPropertyData {
-  referencedModelGetter: () => typeof Model;
   type: 'reference';
+  referencedModelGetter: () => typeof Model;
+  referencedModelProperty?: string;
+}
+
+export interface ReferenceCollectionPropertyData extends CommonPropertyData {
+  type: 'referenceCollection';
+  referencedModelGetter: () => typeof Model;
+  referencedModelProperty: string;
 }
 
 export type PropertyData =
   | BasicPropertyData
-  | OneToManyPropertyData
-  | ManyToOnePropertyData
-  | ReferencePropertyData;
+  | ReferencePropertyData
+  | ReferenceCollectionPropertyData
+  | ReferenceIdPropertyData;
 
 type PropertiesMap = Map<string, PropertyData>;
 
@@ -85,4 +93,8 @@ export function getModelPropertyByInstance(
   const modelClass = Reflect.getPrototypeOf(modelInstance) as typeof Model;
 
   return propsRegistry.get(modelClass)?.get(propertyName) ?? null;
+}
+
+export function getIsPropByInstance(modelInstance: Model, propName: string) {
+  return !!getModelPropertyByInstance(modelInstance, propName);
 }

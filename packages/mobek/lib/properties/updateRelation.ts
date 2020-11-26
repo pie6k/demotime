@@ -26,15 +26,37 @@ export function updateModelRelation(
     throw new Error('@prop properties cannot be part of relation');
   }
 
-  if (propertyData.type === 'manyToOne') {
-    throw new Error('@manyToOne properties cannot be part of relation');
-  }
-
   if (propertyData.type === 'reference') {
-    throw new Error('@reference properties cannot be part of relation');
+    if (!propertyData.referencedModelProperty) {
+      throw new Error('@manyToOne properties cannot be part of relation');
+    }
+
+    if (operationType === 'add') {
+      Reflect.set(
+        hostInstance,
+        propertyData.referencedModelProperty,
+        instanceToAddOrRemove,
+      );
+    }
+
+    const currentHostInstance = Reflect.get(
+      hostInstance,
+      propertyData.referencedModelProperty,
+    );
+
+    // Some different instance is connected - we cannot disconnect.
+    if (currentHostInstance !== instanceToAddOrRemove) {
+      // TODO warn about it
+      return;
+    }
+
+    // TODO: Handle case when relation is required
+    Reflect.set(hostInstance, propertyData.referencedModelProperty, null);
+
+    return;
   }
 
-  if (propertyData.type === 'oneToMany') {
+  if (propertyData.type === 'referenceCollection') {
     const relationCollection = Reflect.get(hostInstance, hostProp);
 
     assert(
