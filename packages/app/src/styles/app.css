@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  background-color: rgb(31, 32, 35);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
+  user-select: none;
+  text-size-adjust: none;
+  cursor: default;
+}
+
+input,
+textarea {
+  font: inherit;
+}
+
+svg.icon-svg g,
+svg.icon-svg path,
+svg.icon-svg circle {
+  fill: currentColor;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  cursor: default;
+}
