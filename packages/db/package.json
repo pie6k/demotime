@@ -1,0 +1,16 @@
+{
+  "name": "@linear/db",
+  "version": "1.0.0",
+  "scripts": {
+    "generate": "prisma generate --watch",
+    "migrate:save": "prisma migrate save --experimental",
+    "migrate:up": "prisma migrate up --experimental",
+    "postinstall": "prisma generate"
+  },
+  "devDependencies": {
+    "@prisma/cli": "^2.11.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^2.11.0"
+  }
+}

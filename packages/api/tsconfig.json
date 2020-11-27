@@ -1,0 +1,7 @@
+{
+  "exclude": ["../../tsconfig.json"],
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "strict": true
+  }
+}

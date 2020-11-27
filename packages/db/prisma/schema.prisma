@@ -1,0 +1,91 @@
+// https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  name           String
+  avatarUrl      String?
+  email          String    @unique
+  projects       Project[] @relation("Owner")
+  sessions       Session[]
+  accounts       Account[]
+  assignedIssues Issue[]   @relation("Assignee")
+  createdIssues  Issue[]   @relation("IssueCreator")
+
+  @@index([email])
+}
+
+model Session {
+  id                 String   @id @default(uuid())
+  createdAt          DateTime @default(now())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+  accessToken        String   @unique @default(cuid())
+  accessTokenExpires DateTime
+  expires            DateTime
+}
+
+model Account {
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id])
+  providerId         String
+  providerType       String
+  providerAccountId  String    @unique
+  refreshToken       String?
+  accessToken        String
+  accessTokenExpires DateTime?
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  urlKey    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  owner     User     @relation("Owner", fields: [ownerId], references: [id])
+  ownerId   String
+  issues    Issue[]
+
+  @@index([id, urlKey, ownerId])
+}
+
+model Issue {
+  id             String      @id @default(cuid())
+  number         Int         @default(autoincrement())
+  urlKey         String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  title          String
+  user           User        @relation("IssueCreator", fields: [userId], references: [id])
+  userId         String
+  assignedUser   User?       @relation("Assignee", fields: [assignedUserId], references: [id])
+  assignedUserId String?
+  status         IssueStatus @default(Backlog)
+  description    String      @default("")
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String
+
+  @@unique([urlKey, projectId])
+  @@index([id, urlKey, userId, assignedUserId])
+}
+
+enum IssueStatus {
+  Backlog
+  Todo
+  InProgress
+  InReview
+  Done
+  Canceled
+}

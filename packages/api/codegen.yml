@@ -1,0 +1,17 @@
+overwrite: true
+schema: './schema.graphql'
+# documents: 'docs/*.graphql'
+generates:
+  generated/index.tsx:
+    plugins:
+      - 'typescript'
+      # - 'typescript-operations'
+      - 'typescript-resolvers'
+      # - 'typescript-react-apollo'
+      # - 'typescript-graphql-files-modules'
+      # - 'typescript-document-nodes'
+    config:
+      defaultMapper: Partial<{T}>
+  ./graphql.schema.json:
+    plugins:
+      - 'introspection'

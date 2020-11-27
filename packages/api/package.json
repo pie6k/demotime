@@ -1,0 +1,25 @@
+{
+  "name": "@linear/api",
+  "version": "1.0.0",
+  "dependencies": {
+    "@nexus/schema": "^0.18.0",
+    "nexus-plugin-prisma": "^0.24.0"
+  },
+  "peerDependencies": {
+    "graphql": "*"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "1.19.2",
+    "@graphql-codegen/introspection": "1.18.0",
+    "@graphql-codegen/typescript": "1.17.11",
+    "@graphql-codegen/typescript-document-nodes": "1.17.8",
+    "@graphql-codegen/typescript-graphql-files-modules": "1.18.0",
+    "@graphql-codegen/typescript-operations": "^1.17.10",
+    "@graphql-codegen/typescript-react-apollo": "2.1.1",
+    "@graphql-codegen/typescript-resolvers": "1.17.11"
+  },
+  "scripts": {
+    "gql": "graphql-codegen --config codegen.yml",
+    "dev": "tsnd --respawn --transpile-only ./index.ts"
+  }
+}
