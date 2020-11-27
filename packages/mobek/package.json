@@ -1,0 +1,14 @@
+{
+  "name": "mobek",
+  "version": "0.1.0",
+  "main": "lib",
+  "peerDependencies": {
+    "mobx": "*"
+  },
+  "scripts": {
+    "test": "jest --watch"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.12.1"
+  }
+}
