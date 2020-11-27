@@ -33,16 +33,12 @@ export default function App({ Component, pageProps }: AppProps<{}>) {
 
   return (
     <AppContextProvider value={appStateContext}>
-      {/* <Head>
-        <title>Create beautiful websites in minutes</title>
-        <link
-          rel="icon"
-          type="image/png"
-          href={require('@hello/app/assets/logo-rounded.png?resize&size=256')}
-        />
+      <Head>
+        <title>Adam's demo</title>
+        <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="dns-prefetch" href="//storage.googleapis.com" />
         <link rel="preconnect" href="https://storage.googleapis.com" />
-      </Head> */}
+      </Head>
       <UIBootHolder style={{ opacity: isInitialized ? 1 : 0 }}>
         {isInitialized && renderPageWithLayout(Component, pageProps)}
       </UIBootHolder>
