@@ -7,7 +7,7 @@ export async function seedDatabase() {
       email: 'adam@pietrasiak.com',
       username: 'adam',
       avatarUrl:
-        'https://pbs.twimg.com/profile_images/931515880252608512/QTSjkiLX_400x400.jpg',
+        'https://pbs.twimg.com/profile_images/1597741134918389761/zk7WQLdy_400x400.jpg',
     });
     store.addUser({
       email: 'jori@linear.app',
